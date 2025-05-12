@@ -67,10 +67,10 @@ WORKDIR /comfyui
 RUN mkdir -p models/checkpoints models/vae models/unet models/clip models/loras models/upscale_models
 
 # Download checkpoints/vae/unet/clip models to include in image
-RUN wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/unet/flux1-dev.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors && \
+RUN wget -q --header="Authorization: Bearer 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" -O models/unet/flux1-dev.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors && \
     wget -q -O models/clip/clip_l.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors && \
     wget -q -O models/clip/t5xxl_fp8_e4m3fn.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors && \
-    wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors && \
+    wget -q --header="Authorization: Bearer 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" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors && \
     wget -q -O models/loras/amateur_photography.safetensors https://mnxqwavpoeqffejselct.supabase.co/storage/v1/object/public/temp/default/Amateur%20Photo%20v6.safetensors && \
     wget -q -O models/loras/canopus_flux_ultrarealism.safetensors https://ktwcktilecskgbzmmfbq.supabase.co/storage/v1/object/public/temp/default/Canopus%20LoRA%20Flux%20UltraRealism%202.0.safetensors && \
     wget -q -O models/upscale_models/4x_face_up_dat.pth https://ktwcktilecskgbzmmfbq.supabase.co/storage/v1/object/public/temp/default/4x%20Face%20Up%20DAT.pth
