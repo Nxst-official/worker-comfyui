@@ -77,18 +77,18 @@ RUN wget -q --header="Authorization: Bearer hf_SPhsECXnkuLBEwyVtvFVETGkcSjjFSxVx
     wget -q -O models/loras/amateur_photography.safetensors https://mnxqwavpoeqffejselct.supabase.co/storage/v1/object/public/temp/default/Amateur%20Photo%20v6.safetensors && \
     wget -q -O models/loras/canopus_flux_ultrarealism.safetensors https://ktwcktilecskgbzmmfbq.supabase.co/storage/v1/object/public/temp/default/Canopus%20LoRA%20Flux%20UltraRealism%202.0.safetensors && \
     wget -q -O models/upscale_models/4x_face_up_dat.pth https://ktwcktilecskgbzmmfbq.supabase.co/storage/v1/object/public/temp/default/4x%20Face%20Up%20DAT.pth
-
+    
 # Install custom nodes
 RUN cd /comfyui/custom_nodes && \
     git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale && \
     git clone https://github.com/glifxyz/ComfyUI-GlifNodes && \
     git clone https://github.com/rgthree/rgthree-comfy
 
-# Install Python dependencies for custom nodes
-RUN pip install diffusers accelerate omegaconf opencv-python
-
 # Stage 3: Final image
 FROM base AS final
+
+# Install same Python dependencies in final image
+RUN uv pip install diffusers accelerate omegaconf opencv-python --system
 
 # Copy models from stage 2 to the final image
 COPY --from=downloader /comfyui/models /comfyui/models
