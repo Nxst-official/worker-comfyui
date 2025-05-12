@@ -82,8 +82,7 @@ RUN wget -q --header="Authorization: Bearer hf_SPhsECXnkuLBEwyVtvFVETGkcSjjFSxVx
 RUN cd /comfyui/custom_nodes && \
     git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale && \
     git clone https://github.com/glifxyz/ComfyUI-GlifNodes && \
-    git clone https://github.com/rgthree/rgthree-comfy && \
-    git clone https://github.com/s4afa451dgf415f/ComfyUI_Remote_LoRA_Loader.git
+    git clone https://github.com/rgthree/rgthree-comfy
 
 # Install Python dependencies for custom nodes
 RUN pip install diffusers accelerate omegaconf opencv-python
