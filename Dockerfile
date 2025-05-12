@@ -17,6 +17,10 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxrender1 \
+    libxext6 \
     && ln -sf /usr/bin/python3.11 /usr/bin/python \
     && ln -sf /usr/bin/pip3 /usr/bin/pip
 
@@ -55,46 +59,36 @@ CMD ["/start.sh"]
 FROM base AS downloader
 
 ARG HUGGINGFACE_ACCESS_TOKEN
-# Set default model type if none is provided
-ARG MODEL_TYPE=flux1-dev-fp8
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
 # Create necessary directories upfront
-RUN mkdir -p models/checkpoints models/vae models/unet models/clip
+RUN mkdir -p models/checkpoints models/vae models/unet models/clip models/loras models/upscale_models
 
-# Download checkpoints/vae/unet/clip models to include in image based on model type
-RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
-      wget -q -O models/checkpoints/sd_xl_base_1.0.safetensors https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors && \
-      wget -q -O models/vae/sdxl_vae.safetensors https://huggingface.co/stabilityai/sdxl-vae/resolve/main/sdxl_vae.safetensors && \
-      wget -q -O models/vae/sdxl-vae-fp16-fix.safetensors https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors; \
-    fi
+# Download checkpoints/vae/unet/clip models to include in image
+RUN wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/unet/flux1-dev.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors && \
+    wget -q -O models/clip/clip_l.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors && \
+    wget -q -O models/clip/t5xxl_fp8_e4m3fn.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors && \
+    wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors && \
+    wget -q -O models/loras/amateur_photography.safetensors https://mnxqwavpoeqffejselct.supabase.co/storage/v1/object/public/temp/default/Amateur%20Photo%20v6.safetensors && \
+    wget -q -O models/loras/canopus_flux_ultrarealism.safetensors https://ktwcktilecskgbzmmfbq.supabase.co/storage/v1/object/public/temp/default/Canopus%20LoRA%20Flux%20UltraRealism%202.0.safetensors && \
+    wget -q -O models/upscale_models/4x_face_up_dat.pth https://ktwcktilecskgbzmmfbq.supabase.co/storage/v1/object/public/temp/default/4x%20Face%20Up%20DAT.pth
 
-RUN if [ "$MODEL_TYPE" = "sd3" ]; then \
-      wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/checkpoints/sd3_medium_incl_clips_t5xxlfp8.safetensors https://huggingface.co/stabilityai/stable-diffusion-3-medium/resolve/main/sd3_medium_incl_clips_t5xxlfp8.safetensors; \
-    fi
+# Install custom nodes
+RUN cd /comfyui/custom_nodes && \
+    git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale && \
+    git clone https://github.com/glifxyz/ComfyUI-GlifNodes && \
+    git clone https://github.com/rgthree/rgthree-comfy && \
+    git clone https://github.com/s4afa451dgf415f/ComfyUI_Remote_LoRA_Loader.git
 
-RUN if [ "$MODEL_TYPE" = "flux1-schnell" ]; then \
-      wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/unet/flux1-schnell.safetensors https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/flux1-schnell.safetensors && \
-      wget -q -O models/clip/clip_l.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors && \
-      wget -q -O models/clip/t5xxl_fp8_e4m3fn.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors && \
-      wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-schnell/resolve/main/ae.safetensors; \
-    fi
-
-RUN if [ "$MODEL_TYPE" = "flux1-dev" ]; then \
-      wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/unet/flux1-dev.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors && \
-      wget -q -O models/clip/clip_l.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors && \
-      wget -q -O models/clip/t5xxl_fp8_e4m3fn.safetensors https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn.safetensors && \
-      wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/ae.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/ae.safetensors; \
-    fi
-
-RUN if [ "$MODEL_TYPE" = "flux1-dev-fp8" ]; then \
-      wget -q -O models/checkpoints/flux1-dev-fp8.safetensors https://huggingface.co/Comfy-Org/flux1-dev/resolve/main/flux1-dev-fp8.safetensors; \
-    fi
+# Install Python dependencies for custom nodes
+RUN pip install diffusers accelerate omegaconf opencv-python
 
 # Stage 3: Final image
 FROM base AS final
 
 # Copy models from stage 2 to the final image
 COPY --from=downloader /comfyui/models /comfyui/models
+# Copy custom nodes from stage 2 to the final image
+COPY --from=downloader /comfyui/custom_nodes /comfyui/custom_nodes
