@@ -58,6 +58,9 @@ CMD ["/start.sh"]
 # Stage 2: Download models
 FROM base AS downloader
 
+# Install git if not available from base
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
 ARG HUGGINGFACE_ACCESS_TOKEN
 
 # Change working directory to ComfyUI
