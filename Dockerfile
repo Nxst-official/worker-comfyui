@@ -49,7 +49,7 @@ WORKDIR /
 RUN uv pip install runpod requests websocket-client --system
 
 # Add application code and scripts
-ADD src/start.sh handler.py test_input.json ./
+ADD src/start.sh handler.py ./
 RUN chmod +x /start.sh
 
 # Set the default command to run when starting the container
@@ -68,6 +68,8 @@ WORKDIR /comfyui
 
 # Create necessary directories upfront
 RUN mkdir -p models/checkpoints models/vae models/unet models/clip models/loras models/upscale_models
+
+RUN uv pip install diffusers accelerate omegaconf opencv-python --system
 
 # Download checkpoints/vae/unet/clip models to include in image
 RUN wget -q --header="Authorization: Bearer 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" -O models/unet/flux1-dev.safetensors https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/flux1-dev.safetensors && \
